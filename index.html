@@ -159,10 +159,13 @@ tbody tr:last-child td{border-bottom:0}
 /* validación y manual */
 .vcard{margin-top:18px}
 .vcard h3,.mcard h3{font-family:var(--disp);font-size:22px;letter-spacing:-.02em;margin:0 0 4px}
-.vgrid{display:grid;grid-template-columns:130px 1fr;gap:6px 18px;margin:14px 0 0}
-.vgrid dt{color:var(--ink2);font-weight:600;font-size:13.5px}
-.vgrid dd{margin:0}
+.vgrid{display:grid;grid-template-columns:130px minmax(0,1fr);gap:6px 18px;margin:14px 0 0}
+.vgrid dt{color:var(--ink2);font-weight:600;font-size:13.5px;min-width:0}
+.vgrid dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .vgrid ul{margin:0;padding-left:18px}
+.vgrid .code{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
+.panel h3{overflow-wrap:anywhere}
+.mcard .code{white-space:pre-wrap}
 .pill{display:inline-block;padding:3px 11px;border-radius:999px;font-weight:600;font-size:13px}
 .pill.ok{background:color-mix(in srgb,var(--in) 18%,transparent);color:var(--in)}
 .pill.no{background:var(--errbg);color:var(--err)}
@@ -178,15 +181,52 @@ tbody tr:last-child td{border-bottom:0}
 .mgrid .mcard{margin:0}
 
 @media (max-width:1020px){.layout{grid-template-columns:minmax(0,1fr)}.panel.out{position:static}}
+/* barra superior + menú hamburguesa (solo en pantallas pequeñas) */
+.topbar,.scrim{display:none}
+.burger{flex:none;width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);background:var(--paper);border-radius:12px;cursor:pointer;color:var(--ink)}
+.burger:hover{border-color:var(--accent);color:var(--accent)}
+.burger .bars{display:block;width:20px;height:14px;position:relative}
+.burger .bars i{position:absolute;left:0;right:0;height:2px;border-radius:2px;background:currentColor;transition:transform .22s,opacity .18s,top .22s}
+.burger .bars i:nth-child(1){top:0}.burger .bars i:nth-child(2){top:6px}.burger .bars i:nth-child(3){top:12px}
+body.nav-open .burger .bars i:nth-child(1){top:6px;transform:rotate(45deg)}
+body.nav-open .burger .bars i:nth-child(2){opacity:0}
+body.nav-open .burger .bars i:nth-child(3){top:6px;transform:rotate(-45deg)}
+.topbar-mark{flex:none;width:34px;height:34px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:18px}
+.topbar-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.topbar-title small{font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-title b{font-family:var(--disp);font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.num{white-space:nowrap}
+
 @media (max-width:860px){
   .shell{grid-template-columns:minmax(0,1fr)}
-  .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;z-index:5;flex-direction:row;align-items:center;gap:10px;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}
-  .brand,.group,.side-foot{display:none}
-  .nav{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none;flex:1}
-  .nav button{white-space:nowrap;width:auto;padding:8px 12px}
-  main{padding-top:24px}
+  .topbar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .side{position:fixed;top:0;left:0;bottom:0;height:100vh;height:100dvh;width:min(310px,86vw);z-index:40;
+    padding:calc(22px + env(safe-area-inset-top,0px)) 14px calc(16px + env(safe-area-inset-bottom,0px));border-right:1px solid var(--line);box-shadow:0 0 40px rgba(10,14,30,.35);
+    transform:translateX(-105%);visibility:hidden;transition:transform .26s ease,visibility 0s linear .26s;overscroll-behavior:contain}
+  body.nav-open .side{transform:none;visibility:visible;transition:transform .26s ease,visibility 0s}
+  .scrim{display:block;position:fixed;inset:0;z-index:35;background:rgba(10,14,30,.5);opacity:0;pointer-events:none;transition:opacity .26s}
+  body.nav-open .scrim{opacity:1;pointer-events:auto}
+  body.nav-open{overflow:hidden}
+  main{padding-top:22px}
+  /* matriz de validación: cada fila pasa a ser una tarjeta */
+  .rtable{display:block}
+  .rtable thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .rtable tbody,.rtable tr{display:block}
+  .rtable tr{padding:10px 14px;border-bottom:1px solid var(--line)}
+  .rtable tbody tr:last-child{border-bottom:0}
+  .rtable td{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 14px;text-align:right;white-space:normal;border:0;padding:4px 0}
+  .rtable td:first-child{text-align:right}
+  .rtable td::before{content:attr(data-label);flex:none;color:var(--ink2);font-weight:600;font-size:12.5px;text-align:left}
+  .rtable td .num{margin-left:auto}
+  .rtable td.mod{font-weight:600}
+  .tbl-wrap:has(.rtable){overflow-x:visible}
 }
-@media (max-width:520px){.grid2{grid-template-columns:minmax(0,1fr)}.vgrid{grid-template-columns:1fr}.panel{padding:18px}}
+@media (max-width:700px){
+  .vgrid{grid-template-columns:minmax(0,1fr);gap:2px}
+  .vgrid dt{margin-top:12px}
+  .vgrid dt:first-child{margin-top:0}
+}
+@media (max-width:520px){.grid2{grid-template-columns:minmax(0,1fr)}.panel{padding:18px}.head h1{overflow-wrap:anywhere}.row-actions .btn{width:100%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 :root{
@@ -232,11 +272,18 @@ body{background-image:radial-gradient(var(--grid) 1.6px,transparent 1.8px);backg
 .steps li::before{background:var(--accent);color:var(--accent-ink)}
 .fld-l{font-weight:700}
 .sub{font-weight:600}
+@media (max-width:860px){.side{background:var(--paper);backdrop-filter:none}}
 </style>
 </head>
 <body>
 <div class="shell">
-  <aside class="side">
+  <header class="topbar">
+    <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="side"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
+    <div class="topbar-mark" aria-hidden="true">🌷</div>
+    <div class="topbar-title"><small>Ingeniería Económica</small><b id="topbar-title">Calculadora</b></div>
+  </header>
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+  <aside class="side" id="side">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">🌷</div>
       <div><b>Ingeniería Económica</b><span>Calculadora financiera</span></div>
@@ -475,14 +522,28 @@ function calcAnn(s){
   if(un==='VP'||un==='VF'){
     const A=num(s.A,'Cuota (A)',{gt:0}),n=num(s.n,'Número de cuotas (n)',{gt:0});
     if(un==='VP'){
-      const fac=fa(n),V=A*fac*adj;
-      st.push({t:'Valor presente de una anualidad '+tipoTxt,f:''+adjF+'\nVP = '+fmt(A)+' × [1 − (1 + '+d8(i)+')^−'+trim(n,4)+'] / '+d8(i)+adjV+'\nfactor = '+fmt(fac,8)+'\nVP = '+fmt(V)});
+      const I1=d8(i),nn=trim(n,4);let V,fac,txt;
+      if(!ant){
+        const pw=Math.pow(1+i,n);fac=isFinite(i*pw)?(pw-1)/(i*pw):fa(n);V=A*fac;
+        txt='VP = A × [(1 + i)^n − 1] / [i × (1 + i)^n]\nVP = '+fmt(A)+' × [(1 + '+I1+')^'+nn+' − 1] / ['+I1+' × (1 + '+I1+')^'+nn+']\n(1 + i)^n = '+fmt(pw,8)+'\nfactor = '+fmt(fac,8)+'\nVP = '+fmt(V);
+      }else{
+        const pm=Math.pow(1+i,n-1),n1=trim(n-1,4);fac=isFinite(i*pm)?(pm-1)/(i*pm):fa(n-1);V=A+A*fac;
+        txt='VP = A + A × [(1 + i)^(n−1) − 1] / [i × (1 + i)^(n−1)]\nVP = '+fmt(A)+' + '+fmt(A)+' × [(1 + '+I1+')^'+n1+' − 1] / ['+I1+' × (1 + '+I1+')^'+n1+']\n(1 + i)^(n−1) = '+fmt(pm,8)+'\nfactor = '+fmt(fac,8)+'\nVP = '+fmt(V);
+      }
+      st.push({t:'Valor presente de una anualidad '+tipoTxt,f:txt});
       ex.push(['Total pagado (A × n)',money(A*n)],['Intereses implícitos',money(A*n-V)]);
       main={label:'Valor presente (VP)',text:money(V),value:V,kind:'money'};
       sub='Valor de hoy de '+trim(n,4)+' cuotas '+pl(pp.name)+' de '+money(A)+' ('+tipoTxt+'s).';
     }else{
-      const fac=ff(n),V=A*fac*adj;
-      st.push({t:'Valor futuro de una anualidad '+tipoTxt,f:'VF = A × [(1 + i)^n − 1] / i'+adjF+'\nVF = '+fmt(A)+' × [(1 + '+d8(i)+')^'+trim(n,4)+' − 1] / '+d8(i)+adjV+'\nfactor = '+fmt(fac,8)+'\nVF = '+fmt(V)});
+      const I1=d8(i),nn=trim(n,4);let V,fac,txt;
+      if(!ant){
+        fac=ff(n);V=A*fac;
+        txt='VF = A × [(1 + i)^n − 1] / i\nVF = '+fmt(A)+' × [(1 + '+I1+')^'+nn+' − 1] / '+I1+'\nfactor = '+fmt(fac,8)+'\nVF = '+fmt(V);
+      }else{
+        const pf=Math.pow(1+i,n+1);fac=(pf-(1+i))/i;V=A*fac;
+        txt='VF = A × [(1 + i)^(n+1) − (1 + i)] / i\nVF = '+fmt(A)+' × [(1 + '+I1+')^'+trim(n+1,4)+' − (1 + '+I1+')] / '+I1+'\n(1 + i)^(n+1) = '+fmt(pf,8)+'\nfactor = '+fmt(fac,8)+'\nVF = '+fmt(V);
+      }
+      st.push({t:'Valor futuro de una anualidad '+tipoTxt,f:txt});
       ex.push(['Total aportado (A × n)',money(A*n)],['Intereses ganados',money(V-A*n)]);
       main={label:'Valor futuro (VF)',text:money(V),value:V,kind:'money'};
       sub='Monto acumulado al final del periodo '+trim(n,4)+' con cuotas de '+money(A)+' ('+tipoTxt+'s).';
@@ -492,9 +553,26 @@ function calcAnn(s){
     const bl=s.base==='VF'?'VF':'VP';
     if(un==='A'){
       const n=num(s.n,'Número de cuotas (n)',{gt:0});
-      const fac=s.base==='VF'?ff(n):fa(n),A=baseV/(fac*adj);
-      if(s.base==='VF')st.push({t:'Despejar la cuota desde el valor futuro ('+tipoTxt+')',f:'A = VF × i / {[(1 + i)^n − 1]'+adjF+'}\nA = '+fmt(baseV)+' × '+d8(i)+' / {[(1 + '+d8(i)+')^'+trim(n,4)+' − 1]'+adjV+'}\nfactor = '+fmt(fac,8)+'\nA = '+fmt(A)});
-      else st.push({t:'Despejar la cuota desde el valor presente ('+tipoTxt+')',f:'A = VP × i / {[1 − (1 + i)^−n]'+adjF+'}\nA = '+fmt(baseV)+' × '+d8(i)+' / {[1 − (1 + '+d8(i)+')^−'+trim(n,4)+']'+adjV+'}\nfactor = '+fmt(fac,8)+'\nA = '+fmt(A)});
+      const I1=d8(i),nn=trim(n,4);let A,fac,txt;
+      if(s.base==='VF'){
+        if(!ant){
+          const pw=Math.pow(1+i,n);fac=i/(pw-1);A=baseV*fac;
+          txt='A = VF × [i / ((1 + i)^n − 1)]\nA = '+fmt(baseV)+' × ['+I1+' / ((1 + '+I1+')^'+nn+' − 1)]\n(1 + i)^n = '+fmt(pw,8)+'\nfactor = '+fmt(fac,10)+'\nA = '+fmt(A);
+        }else{
+          const pf=Math.pow(1+i,n+1);fac=i/(pf-(1+i));A=baseV*fac;
+          txt='A = VF × [i / ((1 + i)^(n+1) − (1 + i))]\nA = '+fmt(baseV)+' × ['+I1+' / ((1 + '+I1+')^'+trim(n+1,4)+' − (1 + '+I1+'))]\n(1 + i)^(n+1) = '+fmt(pf,8)+'\nfactor = '+fmt(fac,10)+'\nA = '+fmt(A);
+        }
+        st.push({t:'Despejar la cuota desde el valor futuro ('+tipoTxt+')',f:txt});
+      }else{
+        if(!ant){
+          const pw=Math.pow(1+i,n);fac=isFinite(i*pw)?(i*pw)/(pw-1):1/fa(n);A=baseV*fac;
+          txt='A = VP × [i × (1 + i)^n / ((1 + i)^n − 1)]\nA = '+fmt(baseV)+' × ['+I1+' × (1 + '+I1+')^'+nn+' / ((1 + '+I1+')^'+nn+' − 1)]\n(1 + i)^n = '+fmt(pw,8)+'\nfactor = '+fmt(fac,10)+'\nA = '+fmt(A);
+        }else{
+          const pm=Math.pow(1+i,n-1),n1=trim(n-1,4);fac=1+(isFinite(i*pm)?(pm-1)/(i*pm):fa(n-1));A=baseV/fac;
+          txt='A = VP / {1 + [(1 + i)^(n−1) − 1] / [i × (1 + i)^(n−1)]}\nA = '+fmt(baseV)+' / {1 + [(1 + '+I1+')^'+n1+' − 1] / ['+I1+' × (1 + '+I1+')^'+n1+']}\n(1 + i)^(n−1) = '+fmt(pm,8)+'\ndenominador = '+fmt(fac,8)+'\nA = '+fmt(A);
+        }
+        st.push({t:'Despejar la cuota desde el valor presente ('+tipoTxt+')',f:txt});
+      }
       ex.push(['Total pagado (A × n)',money(A*n)]);
       main={label:'Cuota (A)',text:money(A),value:A,kind:'money'};
       sub='Cuota '+pp.name+' '+tipoTxt+' durante '+trim(n,4)+' periodos.';
@@ -786,15 +864,15 @@ const VAL=[
   preset:{tipo:'v',unknown:'A',base:'VP',A:'',n:'36',VP:'30000000',VF:'',payPer:'mensual',rate:rateDef('1,5','efectiva','mensual','v')},
   enun:'Se recibe un préstamo de $30.000.000 para pagarlo en 36 cuotas mensuales iguales vencidas, con una tasa del 1,5 % efectivo mensual. ¿De cuánto es la cuota?',
   datos:['VP = $30.000.000','i = 1,5 % efectiva mensual','n = 36 cuotas mensuales vencidas'],inc:'Cuota (A)',
-  proc:'A = VP × i / [1 − (1 + i)^−n]',
-  dev:['(1,015)^−36 = 0,5851','Factor de valor presente = [1 − (1,015)^−36] / 0,015 = 27,66068431','A = 30.000.000 / 27,66068431 = $1.084.571,87','Comprobación independiente: sumando los 36 factores de descuento (1,015)^−k, k = 1…36, se obtiene 27,66068431; y al amortizar el préstamo con esa cuota el saldo final es cero.'],
+  proc:'A = VP × [i × (1 + i)^n] / [(1 + i)^n − 1]',
+  dev:['(1,015)^36 = 1,709139538','Factor = [0,015 × 1,709139538] / [1,709139538 − 1] = 0,03615239554','A = 30.000.000 × 0,03615239554 = $1.084.571,87','Comprobación independiente: sumando los 36 factores de descuento (1,015)^−k, k = 1…36, se obtiene 27,66068431 (su inverso es 0,03615239554); y al amortizar el préstamo con esa cuota el saldo final es cero.'],
   fmtInd:'$ 1.084.571,87'},
  {id:'anticipada',mod:'Anualidad anticipada',kind:'money',indep:10897279.800689345,
   preset:{tipo:'a',unknown:'VF',base:'VP',A:'400000',n:'24',VP:'',VF:'',payPer:'mensual',rate:rateDef('12','nominal','mensual','v')},
   enun:'Una persona ahorra $400.000 al inicio de cada mes durante 24 meses en un fondo que paga 12 % N.M.V. ¿Cuánto tendrá al final del mes 24?',
   datos:['A = $400.000 al inicio de cada mes','j = 12 % N.M.V. → i = 12 % / 12 = 1 % mensual','n = 24 cuotas anticipadas'],inc:'Valor futuro (VF)',
-  proc:'VF = A × [(1 + i)^n − 1] / i × (1 + i)',
-  dev:['i = 0,12 / 12 = 0,01','(1,01)^24 = 1,269734649','[(1,01)^24 − 1] / 0,01 = 26,97346485','Valor futuro como vencida = 400.000 × 26,97346485 = $10.789.385,94','Se multiplica por (1 + i) por ser anticipada: 10.789.385,94 × 1,01 = $10.897.279,80','Comprobación independiente: sumando 400.000 × (1,01)^(24 − k) para k = 0…23 se obtiene el mismo valor.'],
+  proc:'VF = A × [(1 + i)^(n+1) − (1 + i)] / i',
+  dev:['i = 0,12 / 12 = 0,01','(1,01)^(24+1) = (1,01)^25 = 1,282431995','(1,01)^25 − (1 + 0,01) = 1,282431995 − 1,01 = 0,272431995','Factor = 0,272431995 / 0,01 = 27,24319950','VF = 400.000 × 27,24319950 = $10.897.279,80','Comprobación independiente: sumando 400.000 × (1,01)^(24 − k) para k = 0…23 se obtiene el mismo valor.'],
   fmtInd:'$ 10.897.279,80'},
  {id:'perpetuidad',mod:'Anualidad perpetua',kind:'money',indep:103675550.89746353,
   preset:{unknown:'VP',A:'2500000',VP:'',payPer:'trimestral',rate:rateDef('10','efectiva','anual','v')},
@@ -813,10 +891,11 @@ function validationView(){
   const rows=VAL.map(v=>({v:v,x:valResult(v)}));
   const all=rows.every(r=>r.x.ok);
   let h='<header class="head"><h1>Validación financiera</h1><p>Cinco ejercicios resueltos de forma independiente y comparados contra lo que calcula esta herramienta. La columna «Calculadora» se obtiene en vivo con los mismos datos.</p></header>';
-  h+='<section class="panel" style="margin-top:26px"><h3 style="font-family:var(--disp);font-size:22px;margin:0 0 12px">Matriz de validación</h3><div class="tbl-wrap"><table><thead><tr><th>Prueba</th><th>Módulo validado</th><th>Resultado independiente</th><th>Resultado de la calculadora</th><th>Diferencia</th><th>Validado</th></tr></thead><tbody>';
+  h+='<section class="panel" style="margin-top:26px"><h3 style="font-family:var(--disp);font-size:22px;margin:0 0 12px">Matriz de validación</h3><div class="tbl-wrap"><table class="rtable"><thead><tr><th>Prueba</th><th>Módulo validado</th><th>Resultado independiente</th><th>Resultado de la calculadora</th><th>Diferencia</th><th>Validado</th></tr></thead><tbody>';
   rows.forEach((r,i)=>{
     const isM=r.v.kind==='money';
-    h+='<tr><td>'+(i+1)+'</td><td style="text-align:left;white-space:normal">'+r.v.mod+'</td><td>'+(isM?money(r.v.indep):pct(r.v.indep/100))+'</td><td>'+(isM?money(r.x.r.main.value):pct(r.x.r.main.value/100))+'</td><td>'+(isM?fmt(r.x.diff,2):fmt(r.x.diff,6)+' pp')+'</td><td><span class="pill '+(r.x.ok?'ok':'no')+'">'+(r.x.ok?'Sí':'No')+'</span></td></tr>';
+    const sp=t=>'<span class="num">'+t+'</span>';
+    h+='<tr><td data-label="Prueba">'+(i+1)+'</td><td class="mod" data-label="Módulo" style="text-align:left;white-space:normal">'+r.v.mod+'</td><td data-label="Independiente">'+sp(isM?money(r.v.indep):pct(r.v.indep/100))+'</td><td data-label="Calculadora">'+sp(isM?money(r.x.r.main.value):pct(r.x.r.main.value/100))+'</td><td data-label="Diferencia">'+sp(isM?fmt(r.x.diff,2):fmt(r.x.diff,6)+' pp')+'</td><td data-label="Validado"><span class="pill '+(r.x.ok?'ok':'no')+'">'+(r.x.ok?'Sí':'No')+'</span></td></tr>';
   });
   h+='</tbody></table></div><p class="cap">'+(all?'Los cinco ejercicios coinciden. Cualquier diferencia es inferior a la precisión de redondeo mostrada (un centavo en dinero, una millonésima de punto porcentual en tasas).':'Hay ejercicios que no coinciden: revisa el módulo marcado con «No».')+'</p></section>';
   rows.forEach((r,i)=>{
@@ -841,7 +920,7 @@ function manualView(){
   const c=(t,b)=>'<section class="panel mcard"><h3>'+t+'</h3>'+b+'</section>';
   return '<header class="head"><h1>Manual de uso</h1><p>Lo básico para usar la calculadora, ingresar datos y leer los resultados.</p></header><div class="mgrid">'+
   c('Cómo acceder','<p>La calculadora funciona en el navegador, sin instalar nada, en computador o celular. Abre el enlace y elige una operación en el menú. El botón «Cambiar tema» alterna entre modo claro y oscuro.</p>')+
-  c('Cómo seleccionar una operación','<p>El menú de la izquierda (arriba en el celular) lista las seis operaciones: interés compuesto, conversión de tasas, tasas indexadas, anualidad vencida, anualidad anticipada y anualidad perpetua. Cada una pide solo los datos que necesita.</p>')+
+  c('Cómo seleccionar una operación','<p>El menú de la izquierda lista las seis operaciones (en el celular se abre con el botón de las tres rayas, arriba a la izquierda): interés compuesto, conversión de tasas, tasas indexadas, anualidad vencida, anualidad anticipada y anualidad perpetua. Cada una pide solo los datos que necesita.</p>')+
   c('Qué datos ingresar','<ul><li>Primero elige <b>qué quieres calcular</b>; el formulario oculta ese campo y muestra los demás.</li><li>Los montos van en pesos ($). Para decimales usa la coma (1,5). El punto se lee como separador de miles cuando hay tres dígitos después de él (400.000) o está repetido (5.000.000).</li><li>Bajo cada monto se muestra cómo fue leído el número.</li><li>El número de cuotas y el tiempo pueden ser decimales si el ejercicio lo requiere.</li></ul>')+
   c('Cómo seleccionar las periodicidades','<p>Toda tasa se define con cuatro datos: <b>valor</b>, <b>tipo</b> (efectiva o nominal), <b>periodo</b> y <b>modalidad</b> (vencida o anticipada). Debajo del bloque se muestra cómo se lee, por ejemplo «24 % N.T.A.» = nominal con capitalización trimestral anticipada.</p><p>La tasa puede estar en un periodo distinto al del tiempo o de la cuota: la calculadora la convierte automáticamente a la tasa efectiva del periodo correcto y muestra la conversión en el procedimiento.</p>')+
   c('Cómo interpretar el resultado','<ul><li>El número grande es la <b>variable calculada</b>, con su nombre arriba.</li><li>El diagrama marca la incógnita con «?».</li><li>«Procedimiento paso a paso» muestra cada fórmula con sus valores, útil para comprobar a mano.</li><li>Los mensajes en amarillo avisan (por ejemplo, un número de cuotas no entero); los rojos indican datos inconsistentes y no se calcula hasta corregirlos.</li></ul>')+
@@ -859,8 +938,39 @@ function afterSet(key){
     if(/^rate\.(kind|per)$/.test(key))s.unit=s.rate.kind==='ea'?'anual':s.rate.per;
   }
 }
+/* ---------- Menú hamburguesa (pantallas pequeñas) ---------- */
+const TITLES={validacion:'Validación',manual:'Manual de uso'};
+NAV.forEach(function(x){TITLES[x[0]]=x[1];});
+function navOpen(){return document.body.classList.contains('nav-open');}
+function setNav(open,restoreFocus){
+  const bt=$('#burger');
+  document.body.classList.toggle('nav-open',open);
+  bt.setAttribute('aria-expanded',String(open));
+  bt.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');
+  $('#scrim').setAttribute('aria-hidden',String(!open));
+  if(open){setTimeout(function(){const c=document.querySelector('#nav [aria-current="page"]')||document.querySelector('#nav button');if(c)c.focus();},60);}
+  else if(restoreFocus)bt.focus();
+}
+document.addEventListener('keydown',function(e){
+  if(!navOpen())return;
+  if(e.key==='Escape'){setNav(false,true);return;}
+  if(e.key==='Tab'){
+    const f=[].slice.call(document.querySelectorAll('#side button')),first=f[0],last=f[f.length-1];
+    const inside=document.getElementById('side').contains(document.activeElement);
+    if(!inside){e.preventDefault();first.focus();}
+    else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
+if(window.matchMedia){
+  const mq=matchMedia('(min-width:861px)');
+  const onMq=function(){if(mq.matches&&navOpen())setNav(false,false);};
+  if(mq.addEventListener)mq.addEventListener('change',onMq);else if(mq.addListener)mq.addListener(onMq);
+}
+
 function render(){
   renderNav();
+  $('#topbar-title').textContent=TITLES[state.route]||'Calculadora';
   const main=$('#main');
   if(MODS[state.route]){main.innerHTML=moduleView(state.route);renderResult();updatePreviews();}
   else if(state.route==='validacion')main.innerHTML=validationView();
@@ -875,8 +985,10 @@ document.addEventListener('change',function(e){
   setPath(cur(),t.dataset.k,t.value);afterSet(t.dataset.k);render();
 });
 document.addEventListener('click',function(e){
+  if(e.target.id==='scrim'){setNav(false,true);return;}
   const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.go){state.route=b.dataset.go;render();window.scrollTo(0,0);return;}
+  if(b.id==='burger'){setNav(!navOpen(),true);return;}
+  if(b.dataset.go){const wasOpen=navOpen();state.route=b.dataset.go;render();if(wasOpen){setNav(false,false);$('#main').focus({preventScroll:true});}window.scrollTo(0,0);return;}
   if(b.dataset.set){
     const s=cur();setPath(s,b.dataset.set,b.dataset.v);afterSet(b.dataset.set);
     if(b.dataset.set==='ind')s.irate=clone(IND[s.ind].def);
