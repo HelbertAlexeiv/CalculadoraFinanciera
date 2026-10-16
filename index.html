@@ -362,16 +362,18 @@ function calcConv(s){
 }
 
 const IND={
-  DTF:{name:'DTF',bases:{TA:{label:'T.A. (nominal trimestre anticipado)',r:{kind:'nominal',per:'trimestral',mode:'a'}},EA:{label:'E.A. (efectiva anual)',r:{kind:'efectiva',per:'anual',mode:'v'}}},add:true},
-  IBR:{name:'IBR',bases:{NMV:{label:'N.M.V. (nominal mes vencido)',r:{kind:'nominal',per:'mensual',mode:'v'}},EA:{label:'E.A. (efectiva anual)',r:{kind:'efectiva',per:'anual',mode:'v'}}},add:true},
-  IPC:{name:'IPC',bases:{EA:{label:'E.A. (variación anual)',r:{kind:'efectiva',per:'anual',mode:'v'}}},add:false},
-  UVR:{name:'UVR',bases:{EA:{label:'E.A. (variación anual)',r:{kind:'efectiva',per:'anual',mode:'v'}}},add:false}
+  DTF:{name:'DTF',def:{kind:'nominal',per:'trimestral',mode:'a'},add:true},
+  IBR:{name:'IBR',def:{kind:'nominal',per:'mensual',mode:'v'},add:true},
+  IPC:{name:'IPC',def:{kind:'efectiva',per:'anual',mode:'v'},add:false},
+  UVR:{name:'UVR',def:{kind:'efectiva',per:'anual',mode:'v'},add:false}
 };
 function calcIdx(s){
-  const I=IND[s.ind];const base=I.bases[s.base]||I.bases[Object.keys(I.bases)[0]];
+  const I=IND[s.ind];
+  const b=s.irate||I.def;
+  const bt={kind:b.kind,per:b.per,mode:b.mode};
   const vi=num(s.value,'Valor del indicador (%)',{ge:0})/100;
   const sp=num(s.spread,'Puntos adicionales (spread, %)',{ge:0})/100;
-  const bt=base.r,btag=tag({kind:bt.kind,per:bt.per,mode:bt.mode});
+  const btag=tag(bt);
   const st=[];let ea,tot,o;
   if(I.add){
     tot=vi+sp;
@@ -379,14 +381,24 @@ function calcIdx(s){
     o=toEA({v:tot,kind:bt.kind,per:bt.per,mode:bt.mode});
     st.push.apply(st,o.st);ea=o.ea;
   }else{
-    ea=(1+vi)*(1+sp)-1;tot=ea;
-    st.push({t:'Indexar: combinar el indicador y los puntos de forma compuesta',f:'E.A. = (1 + '+s.ind+') × (1 + puntos) − 1 = (1 + '+d8(vi)+') × (1 + '+d8(sp)+') − 1 = '+d8(ea)});
+    const o1=toEA({v:vi,kind:bt.kind,per:bt.per,mode:bt.mode});
+    const o2=toEA({v:sp,kind:bt.kind,per:bt.per,mode:bt.mode});
+    st.push({t:'Llevar el indicador '+s.ind+' ('+pct(vi,4)+' '+btag+') a efectiva anual',f:'Conversión de la base '+btag+' a E.A.'});
+    st.push.apply(st,o1.st);
+    st.push({t:'Llevar los puntos ('+pct(sp,4)+' '+btag+') a efectiva anual',f:'Conversión de la base '+btag+' a E.A.'});
+    st.push.apply(st,o2.st);
+    ea=(1+o1.ea)*(1+o2.ea)-1;
+    st.push({t:'Indexar: combinar el indicador y los puntos de forma compuesta',f:'E.A. = (1 + '+s.ind+') × (1 + puntos) − 1 = (1 + '+d8(o1.ea)+') × (1 + '+d8(o2.ea)+') − 1 = '+d8(ea)});
+    tot=fromEA(ea,bt).out;
+    st.push({t:'Expresar la tasa indexada en la base del indicador ('+btag+')',f:pct(tot)+' '+btag});
   }
   const f=fromEA(ea,s.target);
   st.push.apply(st,f.st);
   return {
     main:{label:'Tasa indexada convertida a '+tag(s.target),text:pct(f.out),value:f.out*100,kind:'rate'},
-    sub:s.ind+' '+pct(vi,4)+' '+btag+' + '+pct(sp,4)+' = '+pct(tot)+' '+btag+' (tasa indexada).',
+    sub:I.add?
+      s.ind+' '+pct(vi,4)+' '+btag+' + '+pct(sp,4)+' = '+pct(tot)+' '+btag+' (tasa indexada).':
+      s.ind+' '+pct(vi,4)+' '+btag+' combinado con '+pct(sp,4)+' '+btag+' = '+pct(tot)+' '+btag+' (tasa indexada).',
     extras:[['Tasa indexada en su base ('+btag+')',pct(tot)],['Efectiva anual (E.A.)',pct(ea)]],
     steps:st,warns:[],table:eqRows(ea),diag:null
   };
@@ -557,7 +569,7 @@ function rateDef(value,kind,per,mode){return {value:value,kind:kind,per:per,mode
 const DEFAULTS={
   compuesto:()=>({unknown:'F',P:'10.000.000',F:'',n:'24',unit:'mensual',rate:rateDef('1,5','periodica','mensual','v')}),
   tasas:()=>({rate:rateDef('24','nominal','trimestral','a'),target:{kind:'efectiva',per:'anual',mode:'v'}}),
-  indexadas:()=>({ind:'DTF',base:'TA',value:'9,8',spread:'3,2',target:{kind:'efectiva',per:'anual',mode:'v'}}),
+  indexadas:()=>({ind:'DTF',irate:clone(IND.DTF.def),value:'9,8',spread:'3,2',target:{kind:'efectiva',per:'anual',mode:'v'}}),
   vencida:()=>({tipo:'v',unknown:'VP',base:'VP',A:'1.000.000',n:'24',VP:'',VF:'',payPer:'mensual',rate:rateDef('18','nominal','mensual','v')}),
   anticipada:()=>({tipo:'a',unknown:'VF',base:'VP',A:'400.000',n:'24',VP:'',VF:'',payPer:'mensual',rate:rateDef('12','nominal','mensual','v')}),
   perpetuidad:()=>({tipo:'v',unknown:'VP',A:'2.500.000',VP:'',payPer:'trimestral',rate:rateDef('10','efectiva','anual','v')})
@@ -684,13 +696,13 @@ const MODS={
   tasas:{name:'Conversión de tasas',desc:'Convierte entre efectivas y nominales, vencidas y anticipadas, de cualquier periodicidad.',
     form:s=>rateBlock('rate','Tasa de origen',true)+rateBlock('target','Tasa a la que quieres convertir',false),
     calc:calcConv,diag:null},
-  indexadas:{name:'Tasas indexadas',desc:'DTF e IBR se indexan sumando puntos en su misma base; IPC y UVR se combinan de forma compuesta. Luego convierte el resultado.',
+  indexadas:{name:'Tasas indexadas',desc:'DTF, IBR, IPC y UVR con tipo, periodicidad (diaria a anual) y modalidad configurables. DTF e IBR suman los puntos en su misma base; IPC y UVR se combinan de forma compuesta. Luego convierte el resultado.',
     form:s=>seg('ind','Indicador',[{v:'DTF',l:'DTF'},{v:'IBR',l:'IBR'},{v:'IPC',l:'IPC'},{v:'UVR',l:'UVR'}])+
-      (Object.keys(IND[s.ind].bases).length>1?seg('base','Base en que está expresado el indicador',Object.keys(IND[s.ind].bases).map(k=>({v:k,l:IND[s.ind].bases[k].label.split(' ')[0]}))):'')+
+      rateBlock('irate','Periodicidad del indicador '+s.ind+' (también aplica a los puntos)',false)+
       '<div class="grid2">'+fld('value','Valor del indicador',{suf:'%',ph:'Ej: 9,8'})+fld('spread','Puntos adicionales (spread)',{suf:'%',ph:'Ej: 3,2'})+'</div>'+
       '<p class="note">'+(IND[s.ind].add?
-        'Procedimiento: <b>'+s.ind+' + puntos</b>, ambos en la misma base ('+IND[s.ind].bases[s.base].label+'). Después se convierte la tasa resultante.':
-        'Procedimiento: <b>(1 + '+s.ind+') × (1 + puntos) − 1</b>, con ambos valores como efectivos anuales (E.A.).')+'</p>'+
+        'Procedimiento: <b>'+s.ind+' + puntos</b>, ambos en la misma base ('+tag(s.irate)+' · '+words(s.irate)+'). Después se convierte la tasa resultante.':
+        'Procedimiento: <b>(1 + '+s.ind+') × (1 + puntos) − 1</b>, calculado sobre las efectivas anuales equivalentes del indicador y de los puntos, ambos leídos en la base '+tag(s.irate)+' ('+words(s.irate)+').')+'</p>'+
       rateBlock('target','Convertir la tasa indexada a',false),
     calc:calcIdx,diag:null},
   vencida:{name:'Anualidad vencida',desc:'Cuotas iguales pagadas al final de cada periodo. Calcula valor presente, valor futuro, cuota o número de cuotas.',
@@ -771,7 +783,7 @@ const VAL=[
   dev:['La tasa ya está en el periodo del tiempo (mensual), no requiere conversión.','(1 + 0,018)^18 = 1,378668980','VF = 5.000.000 × 1,378668980 = $6.893.344,90','Comprobación independiente: acumulando mes a mes (multiplicando por 1,018 dieciocho veces) se obtiene el mismo valor.'],
   fmtInd:'$ 6.893.344,90'},
  {id:'indexadas',mod:'Conversión e indexación de tasas',kind:'rate',indep:13.288984997963915,
-  preset:{ind:'DTF',base:'TA',value:'9,8',spread:'3,2',target:{kind:'nominal',per:'mensual',mode:'v'}},
+  preset:{ind:'DTF',irate:{kind:'nominal',per:'trimestral',mode:'a'},value:'9,8',spread:'3,2',target:{kind:'nominal',per:'mensual',mode:'v'}},
   enun:'Un crédito se pacta a DTF + 3,2 puntos, con DTF = 9,8 % T.A. ¿Qué tasa nominal mes vencido (N.M.V.) equivale a la tasa indexada?',
   datos:['DTF = 9,8 % T.A.','Puntos adicionales = 3,2 % T.A.','Tasa final pedida: N.M.V.'],inc:'Tasa N.M.V. equivalente',
   proc:'Indexación aditiva en T.A. → ia = j/4 → i = ia/(1 − ia) → E.A. = (1 + i)^4 − 1 → i_m = (1 + E.A.)^(1/12) − 1 → j = i_m × 12',
@@ -840,7 +852,7 @@ function manualView(){
   c('Qué datos ingresar','<ul><li>Primero elige <b>qué quieres calcular</b>; el formulario oculta ese campo y muestra los demás.</li><li>Los montos van en pesos ($). Para decimales usa la coma (1,5). El punto se lee como separador de miles cuando hay tres dígitos después de él (400.000) o está repetido (5.000.000).</li><li>Bajo cada monto se muestra cómo fue leído el número.</li><li>El número de cuotas y el tiempo pueden ser decimales si el ejercicio lo requiere.</li></ul>')+
   c('Cómo seleccionar las periodicidades','<p>Toda tasa se define con cuatro datos: <b>valor</b>, <b>tipo</b> (efectiva o nominal), <b>periodo</b> y <b>modalidad</b> (vencida o anticipada). Debajo del bloque se muestra cómo se lee, por ejemplo «24 % N.T.A.» = nominal con capitalización trimestral anticipada.</p><p>La tasa puede estar en un periodo distinto al del tiempo o de la cuota: la calculadora la convierte automáticamente a la tasa efectiva del periodo correcto y muestra la conversión en el procedimiento.</p>')+
   c('Cómo interpretar el resultado','<ul><li>El número grande es la <b>variable calculada</b>, con su nombre arriba.</li><li>El diagrama marca la incógnita con «?».</li><li>«Procedimiento paso a paso» muestra cada fórmula con sus valores, útil para comprobar a mano.</li><li>Los mensajes en amarillo avisan (por ejemplo, un número de cuotas no entero); los rojos indican datos inconsistentes y no se calcula hasta corregirlos.</li></ul>')+
-  c('Procedimiento de indexación','<ul><li><b>DTF</b> (T.A.) e <b>IBR</b> (N.M.V.): se suman los puntos al indicador en la misma base y luego se convierte la tasa resultante.</li><li><b>IPC</b> y <b>UVR</b> (E.A.): (1 + indicador) × (1 + puntos) − 1.</li></ul><p>Ajusta este procedimiento si tu curso trabaja una variante distinta.</p>')+
+  c('Procedimiento de indexación','<ul><li>Para cualquiera de los cuatro indicadores puedes elegir el <b>tipo</b> (efectiva o nominal), la <b>periodicidad</b> (diaria a anual) y la <b>modalidad</b> (vencida o anticipada). Los puntos adicionales se leen en esa misma base. Al cambiar de indicador se carga su base habitual: DTF en T.A., IBR en N.M.V., IPC y UVR en E.A.</li><li><b>DTF</b> e <b>IBR</b>: se suman los puntos al indicador en la misma base y luego se convierte la tasa resultante.</li><li><b>IPC</b> y <b>UVR</b>: (1 + indicador) × (1 + puntos) − 1, aplicado sobre las efectivas anuales equivalentes de ambos.</li></ul><p>Ajusta este procedimiento si tu curso trabaja una variante distinta.</p>')+
   c('Limitaciones','<ul><li>Cuotas constantes: no incluye gradientes ni flujos irregulares.</li><li>Las tasas deben ser mayores que cero. Una tasa anual (E.A.) nunca es anticipada.</li><li>En interés compuesto solo se usa E.A. o interés periódico; si es anticipado se convierte internamente a vencido.</li><li>La periodicidad diaria usa 365 periodos por año.</li><li>Una perpetuidad requiere tasa positiva; en la anticipada, el capital debe superar el pago.</li></ul>')+
   '</div>';
 }
@@ -848,7 +860,7 @@ function manualView(){
 /* ---------- Eventos ---------- */
 function afterSet(key){
   const s=cur();
-  ['rate','target'].forEach(k=>{if(s[k]&&s[k].per==='anual')s[k].mode='v';});
+  ['rate','target','irate'].forEach(k=>{if(s[k]&&s[k].per==='anual')s[k].mode='v';});
   if(state.route==='compuesto'&&s.rate){
     if(s.rate.kind==='periodica'&&s.rate.per==='anual')s.rate.per='mensual';
     if(/^rate\.(kind|per)$/.test(key))s.unit=s.rate.kind==='ea'?'anual':s.rate.per;
@@ -874,7 +886,7 @@ document.addEventListener('click',function(e){
   if(b.dataset.go){state.route=b.dataset.go;render();window.scrollTo(0,0);return;}
   if(b.dataset.set){
     const s=cur();setPath(s,b.dataset.set,b.dataset.v);afterSet(b.dataset.set);
-    if(b.dataset.set==='ind')s.base=Object.keys(IND[s.ind].bases)[0];
+    if(b.dataset.set==='ind')s.irate=clone(IND[s.ind].def);
     render();return;
   }
   if(b.dataset.reset){state.mods[state.route]=DEFAULTS[state.route]();render();return;}
