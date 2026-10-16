@@ -476,7 +476,7 @@ function calcAnn(s){
     const A=num(s.A,'Cuota (A)',{gt:0}),n=num(s.n,'Número de cuotas (n)',{gt:0});
     if(un==='VP'){
       const fac=fa(n),V=A*fac*adj;
-      st.push({t:'Valor presente de una anualidad '+tipoTxt,f:'VP = A × [1 − (1 + i)^−n] / i'+adjF+'\nVP = '+fmt(A)+' × [1 − (1 + '+d8(i)+')^−'+trim(n,4)+'] / '+d8(i)+adjV+'\nfactor = '+fmt(fac,8)+'\nVP = '+fmt(V)});
+      st.push({t:'Valor presente de una anualidad '+tipoTxt,f:''+adjF+'\nVP = '+fmt(A)+' × [1 − (1 + '+d8(i)+')^−'+trim(n,4)+'] / '+d8(i)+adjV+'\nfactor = '+fmt(fac,8)+'\nVP = '+fmt(V)});
       ex.push(['Total pagado (A × n)',money(A*n)],['Intereses implícitos',money(A*n-V)]);
       main={label:'Valor presente (VP)',text:money(V),value:V,kind:'money'};
       sub='Valor de hoy de '+trim(n,4)+' cuotas '+pl(pp.name)+' de '+money(A)+' ('+tipoTxt+'s).';
