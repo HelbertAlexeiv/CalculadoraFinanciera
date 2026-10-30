@@ -276,6 +276,55 @@ body{background-image:radial-gradient(var(--grid) 1.6px,transparent 1.8px);backg
 .fld-l{font-weight:700}
 .sub{font-weight:600}
 @media (max-width:860px){.side{background:var(--paper);backdrop-filter:none}}
+
+/* ===== Manual de uso interactivo ===== */
+.mtoc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:22px 0 0}
+.chip{display:inline-flex;align-items:center;gap:7px;border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 15px 6px 11px;cursor:pointer;font-weight:700;font-size:14px;transition:transform .18s,border-color .18s,background .18s,color .18s}
+.chip span{font-size:16px;line-height:1}
+.chip:hover{border-color:var(--accent);background:var(--soft);color:var(--accent);transform:translateY(-2px)}
+.chip:active{transform:scale(.96)}
+.chip.ghost{border-style:dashed;margin-left:auto;color:var(--ink2);padding-left:15px}
+.mgrid{align-items:start}
+.mcard{--mc:var(--accent);position:relative;overflow:hidden;padding:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,border-color .28s}
+.mcard.warn{--mc:var(--warn)}
+.mcard::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(90deg,var(--mc),color-mix(in srgb,var(--mc) 30%,transparent));transform:scaleX(.16);transform-origin:left;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.mcard::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;box-shadow:inset 0 0 0 4px var(--mc)}
+.mcard.flash::after{animation:mflash 1.4s ease}
+@keyframes mflash{0%,100%{opacity:0}25%{opacity:1}}
+.mhead{display:flex;align-items:center;gap:14px;width:100%;min-height:var(--hh,0px);margin:0;padding:22px 22px 12px;background:none;border:0;color:inherit;font-family:var(--disp);font-size:20px;line-height:1.2;font-weight:600;text-align:left;cursor:pointer;border-radius:26px 26px 0 0}
+.mcard h3{margin:0}
+.mtt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.mtt small{font-family:var(--body);font-weight:800;font-size:12px;letter-spacing:.14em;color:var(--mc)}
+.mico{flex:none;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:25px;background:color-mix(in srgb,var(--mc) 15%,var(--paper));transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.mchev{flex:none;position:relative;width:30px;height:30px;border-radius:50%;background:var(--soft);transition:transform .3s,background .25s}
+.mchev::after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;border:solid var(--ink2);border-width:0 2.5px 2.5px 0;transform:translate(-50%,-70%) rotate(45deg);transition:border-color .25s}
+.mcard.closed .mchev{transform:rotate(-90deg)}
+.mbody{display:grid;grid-template-rows:1fr;transition:grid-template-rows .35s ease,visibility .35s}
+.minner{min-height:0;overflow:hidden;padding:0 22px}
+.mfill{min-height:var(--mh,0px);padding:4px 0 24px}
+.mfill>:first-child{margin-top:0}
+.mfill>:last-child{margin-bottom:0}
+.mcard.closed .mbody{grid-template-rows:0fr;visibility:hidden}
+.mcard ul{list-style:none;padding:0;margin:4px 0 0;display:grid;gap:4px}
+.mcard li{position:relative;padding:7px 12px 7px 32px;border-radius:14px;transition:background .2s,transform .2s}
+.mcard li::before{content:"✿";position:absolute;left:10px;top:7px;color:var(--mc);font-size:14px}
+.mcard b{border-radius:4px;padding:0 2px;background:linear-gradient(transparent 58%,color-mix(in srgb,var(--mc) 26%,transparent) 58%);transition:background .25s}
+.mcard.warn li::before{content:"!";font-weight:800;font-size:13px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--warnbg);color:var(--warn);left:9px;top:10px}
+@media (hover:hover){
+  .mcard:hover{transform:translateY(-5px);border-color:var(--mc);box-shadow:0 22px 34px -20px color-mix(in srgb,var(--mc) 70%,transparent)}
+  .mcard:hover::before{transform:scaleX(1)}
+  .mcard:hover .mico{transform:scale(1.14) rotate(-8deg)}
+  .mhead:hover .mchev{background:var(--mc)}
+  .mhead:hover .mchev::after{border-color:var(--paper)}
+  .mcard li:hover{background:color-mix(in srgb,var(--mc) 10%,transparent);transform:translateX(4px)}
+  .mcard li:hover b{background:linear-gradient(transparent 0,color-mix(in srgb,var(--mc) 32%,transparent) 0)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .mcard{animation:mrise .55s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 70ms)}
+}
+@keyframes mrise{from{opacity:0;transform:translateY(18px) scale(.98)}}
+@media (max-width:520px){.mhead{padding:18px 18px 10px;gap:12px;font-size:18px}.minner{padding:0 18px}.chip.ghost{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.mbody,.mcard,.mico,.chip{transition:none!important}}
 </style>
 </head>
 <body>
@@ -920,17 +969,77 @@ function validationView(){
 
 /* ---------- Manual ---------- */
 function manualView(){
-  const c=(t,b)=>'<section class="panel mcard"><h3>'+t+'</h3>'+b+'</section>';
-  return '<header class="head"><h1>Manual de uso</h1><p>Lo básico para usar la calculadora, ingresar datos y leer los resultados.</p></header><div class="mgrid">'+
-  c('Cómo acceder','<p>La calculadora funciona en el navegador, sin instalar nada, en computador o celular. Abre el enlace y elige una operación en el menú. El botón «Cambiar tema» alterna entre modo claro y oscuro.</p>')+
-  c('Cómo seleccionar una operación','<p>El menú de la izquierda lista las seis operaciones (en el celular se abre con el botón de las tres rayas, arriba a la izquierda): interés compuesto, conversión de tasas, tasas indexadas, anualidad vencida, anualidad anticipada y anualidad perpetua. Cada una pide solo los datos que necesita.</p>')+
-  c('Qué datos ingresar','<ul><li>Primero elige <b>qué quieres calcular</b>; el formulario oculta ese campo y muestra los demás.</li><li>Los montos van en pesos ($). Para decimales usa la coma (1,5). El punto se lee como separador de miles cuando hay tres dígitos después de él (400.000) o está repetido (5.000.000).</li><li>Bajo cada monto se muestra cómo fue leído el número.</li><li>El número de cuotas y el tiempo pueden ser decimales si el ejercicio lo requiere.</li></ul>')+
-  c('Cómo seleccionar las periodicidades','<p>Toda tasa se define con cuatro datos: <b>valor</b>, <b>tipo</b> (efectiva o nominal), <b>periodo</b> y <b>modalidad</b> (vencida o anticipada). Debajo del bloque se muestra cómo se lee, por ejemplo «24 % N.T.A.» = nominal con capitalización trimestral anticipada.</p><p>La tasa puede estar en un periodo distinto al del tiempo o de la cuota: la calculadora la convierte automáticamente a la tasa efectiva del periodo correcto y muestra la conversión en el procedimiento.</p>')+
-  c('Cómo interpretar el resultado','<ul><li>El número grande es la <b>variable calculada</b>, con su nombre arriba.</li><li>El diagrama marca la incógnita con «?».</li><li>«Procedimiento paso a paso» muestra cada fórmula con sus valores, útil para comprobar a mano.</li><li>Los mensajes en amarillo avisan (por ejemplo, un número de cuotas no entero); los rojos indican datos inconsistentes y no se calcula hasta corregirlos.</li></ul>')+
-  c('Procedimiento de indexación','<ul><li>Para cualquiera de los cuatro indicadores puedes elegir el <b>tipo</b> (efectiva o nominal), la <b>periodicidad</b> (diaria a anual) y la <b>modalidad</b> (vencida o anticipada). Los puntos adicionales se leen en esa misma base. Al cambiar de indicador se carga su base habitual: DTF en T.A., IBR en N.M.V., IPC y UVR en E.A.</li><li><b>DTF</b> e <b>IBR</b>: se suman los puntos al indicador en la misma base y luego se convierte la tasa resultante.</li><li><b>IPC</b> y <b>UVR</b>: (1 + indicador) × (1 + puntos) − 1, aplicado sobre las efectivas anuales equivalentes de ambos.</li></ul><p>Ajusta este procedimiento si tu curso trabaja una variante distinta.</p>')+
-  c('Limitaciones','<ul><li>Cuotas constantes: no incluye gradientes ni flujos irregulares.</li><li>Las tasas deben ser mayores que cero. Una tasa anual (E.A.) nunca es anticipada.</li><li>En interés compuesto solo se usa E.A. o interés periódico; si es anticipado se convierte internamente a vencido.</li><li>La periodicidad diaria usa 360 periodos por año.</li><li>La anualidad perpetua solo se calcula vencida y requiere una tasa positiva.</li></ul>')+
-  '</div>';
+  const cards=[];
+  const c=(ico,short,t,b,cls)=>{
+    const n=cards.length+1,id='m'+n,num=n<10?'0'+n:''+n;
+    cards.push({id:id,ico:ico,short:short});
+    return '<section class="panel mcard closed'+(cls?' '+cls:'')+'" id="'+id+'" style="--i:'+n+'">'+
+      '<h3><button type="button" class="mhead" aria-expanded="false" aria-controls="'+id+'-b">'+
+      '<span class="mico" aria-hidden="true">'+ico+'</span>'+
+      '<span class="mtt"><small>'+num+'</small>'+t+'</span>'+
+      '<span class="mchev" aria-hidden="true"></span></button></h3>'+
+      '<div class="mbody" id="'+id+'-b"><div class="minner"><div class="mfill">'+b+'</div></div></div></section>';
+  };
+  const html=
+  c('🌐','Acceder','Cómo acceder','<p>La calculadora funciona en el navegador, sin instalar nada, en computador o celular. Abre el enlace y elige una operación en el menú. El botón «Cambiar tema» alterna entre modo claro y oscuro.</p>')+
+  c('🧭','Operación','Cómo seleccionar una operación','<p>El menú de la izquierda lista las seis operaciones (en el celular se abre con el botón de las tres rayas, arriba a la izquierda): interés compuesto, conversión de tasas, tasas indexadas, anualidad vencida, anualidad anticipada y anualidad perpetua. Cada una pide solo los datos que necesita.</p>')+
+  c('✏️','Datos','Qué datos ingresar','<ul><li>Primero elige <b>qué quieres calcular</b>; el formulario oculta ese campo y muestra los demás.</li><li>Los montos van en pesos ($). Para decimales usa la coma (1,5). El punto se lee como separador de miles cuando hay tres dígitos después de él (400.000) o está repetido (5.000.000).</li><li>Bajo cada monto se muestra cómo fue leído el número.</li><li>El número de cuotas y el tiempo pueden ser decimales si el ejercicio lo requiere.</li></ul>')+
+  c('⏱️','Periodicidades','Cómo seleccionar las periodicidades','<p>Toda tasa se define con cuatro datos: <b>valor</b>, <b>tipo</b> (efectiva o nominal), <b>periodo</b> y <b>modalidad</b> (vencida o anticipada). Debajo del bloque se muestra cómo se lee, por ejemplo «24 % N.T.A.» = nominal con capitalización trimestral anticipada.</p><p>La tasa puede estar en un periodo distinto al del tiempo o de la cuota: la calculadora la convierte automáticamente a la tasa efectiva del periodo correcto y muestra la conversión en el procedimiento.</p>')+
+  c('📊','Resultado','Cómo interpretar el resultado','<ul><li>El número grande es la <b>variable calculada</b>, con su nombre arriba.</li><li>El diagrama marca la incógnita con «?».</li><li>«Procedimiento paso a paso» muestra cada fórmula con sus valores, útil para comprobar a mano.</li><li>Los mensajes en amarillo avisan (por ejemplo, un número de cuotas no entero); los rojos indican datos inconsistentes y no se calcula hasta corregirlos.</li></ul>')+
+  c('📈','Indexación','Procedimiento de indexación','<ul><li>Para cualquiera de los cuatro indicadores puedes elegir el <b>tipo</b> (efectiva o nominal), la <b>periodicidad</b> (diaria a anual) y la <b>modalidad</b> (vencida o anticipada). Los puntos adicionales se leen en esa misma base. Al cambiar de indicador se carga su base habitual: DTF en T.A., IBR en N.M.V., IPC y UVR en E.A.</li><li><b>DTF</b> e <b>IBR</b>: se suman los puntos al indicador en la misma base y luego se convierte la tasa resultante.</li><li><b>IPC</b> y <b>UVR</b>: (1 + indicador) × (1 + puntos) − 1, aplicado sobre las efectivas anuales equivalentes de ambos.</li></ul><p>Ajusta este procedimiento si tu curso trabaja una variante distinta.</p>')+
+  c('⚠️','Limitaciones','Limitaciones','<ul><li>Cuotas constantes: no incluye gradientes ni flujos irregulares.</li><li>Las tasas deben ser mayores que cero. Una tasa anual (E.A.) nunca es anticipada.</li><li>En interés compuesto solo se usa E.A. o interés periódico; si es anticipado se convierte internamente a vencido.</li><li>La periodicidad diaria usa 360 periodos por año.</li><li>La anualidad perpetua solo se calcula vencida y requiere una tasa positiva.</li></ul>','warn')+
+  '';
+  const toc='<nav class="mtoc" aria-label="Contenido del manual">'+
+    cards.map(k=>'<button type="button" class="chip" data-mgo="'+k.id+'"><span aria-hidden="true">'+k.ico+'</span>'+k.short+'</button>').join('')+
+    '<button type="button" class="chip ghost" data-mall="open" id="mall">Expandir todo</button></nav>';
+  return '<header class="head"><h1>Manual de uso</h1><p>Lo básico para usar la calculadora, ingresar datos y leer los resultados.</p></header>'+toc+
+    '<div class="mgrid">'+html+'</div>';
 }
+/* iguala el tamaño de las tarjetas de una misma fila (cabecera y contenido) */
+function fitManual(){
+  const g=document.querySelector('.mgrid');if(!g)return;
+  const cards=[].slice.call(g.querySelectorAll('.mcard'));
+  cards.forEach(function(c){c.style.removeProperty('--hh');c.style.removeProperty('--mh');});
+  const cols=getComputedStyle(g).gridTemplateColumns.split(' ').length;
+  if(cols<2)return;
+  const hh=Math.max.apply(null,cards.map(function(c){return c.querySelector('.mhead').offsetHeight;}));
+  cards.forEach(function(c){c.style.setProperty('--hh',hh+'px');});
+  for(let i=0;i<cards.length;i+=cols){
+    const grp=cards.slice(i,i+cols);
+    const mh=Math.max.apply(null,grp.map(function(c){return c.querySelector('.mfill').offsetHeight;}));
+    grp.forEach(function(c){c.style.setProperty('--mh',mh+'px');});
+  }
+}
+let fitRaf=0;
+window.addEventListener('resize',function(){cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fitManual);});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitManual);
+function setCard(sec,open){
+  sec.classList.toggle('closed',!open);
+  const h=sec.querySelector('.mhead');if(h)h.setAttribute('aria-expanded',String(open));
+}
+function syncMall(){
+  const all=document.getElementById('mall');if(!all)return;
+  const anyOpen=document.querySelector('.mcard:not(.closed)');
+  all.textContent=anyOpen?'Contraer todo':'Expandir todo';
+  all.dataset.mall=anyOpen?'close':'open';
+}
+document.addEventListener('click',function(e){
+  const t=e.target.closest?e.target.closest('.mhead,[data-mgo],[data-mall]'):null;
+  if(!t)return;
+  if(t.classList.contains('mhead')){
+    const sec=t.closest('.mcard');setCard(sec,sec.classList.contains('closed'));syncMall();return;
+  }
+  if(t.dataset.mall){
+    const open=t.dataset.mall==='open';
+    document.querySelectorAll('.mcard').forEach(s=>setCard(s,open));syncMall();return;
+  }
+  const sec=document.getElementById(t.dataset.mgo);if(!sec)return;
+  setCard(sec,true);syncMall();
+  const calm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  sec.scrollIntoView({behavior:calm?'auto':'smooth',block:'center'});
+  sec.classList.remove('flash');void sec.offsetWidth;sec.classList.add('flash');
+  setTimeout(function(){sec.classList.remove('flash');},1500);
+});
 
 /* ---------- Eventos ---------- */
 function afterSet(key){
@@ -977,7 +1086,7 @@ function render(){
   const main=$('#main');
   if(MODS[state.route]){main.innerHTML=moduleView(state.route);renderResult();updatePreviews();}
   else if(state.route==='validacion')main.innerHTML=validationView();
-  else main.innerHTML=manualView();
+  else{main.innerHTML=manualView();fitManual();}
 }
 document.addEventListener('input',function(e){
   const t=e.target;if(!t.dataset||!t.dataset.k||t.tagName==='SELECT')return;
